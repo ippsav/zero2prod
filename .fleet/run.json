@@ -13,7 +13,7 @@
         {
             "type": "cargo",
             "name": "Run tests",
-            "cargoArgs": ["test"],
+            "cargoArgs": ["test","--", "--nocapture"],
         }
     ]
 }
