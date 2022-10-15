@@ -1,12 +1,15 @@
 use std::net::TcpListener;
 
-fn spawn_app() -> String {
+use sqlx::{PgConnection, Connection};
+use zero2prod::{startup::run, configuration::{get_configuration, Settings}};
+
+fn spawn_app(config: &Settings) -> String {
     // setting up the listener
-    let listener = TcpListener::bind("0.0.0.0:0").unwrap();
+    let listener = TcpListener::bind(format!("0.0.0.0:{}",config.application_port)).unwrap();
     // getting the port from the listener
     let port = listener.local_addr().unwrap().port();
     // setting up the server to be spawned in a tokio task
-    let server = zero2prod::run(listener).expect("could not start server");
+    let server = run(listener).expect("could not start server");
     let _ = tokio::spawn(server);
 
     format!("0.0.0.0:{port}")
@@ -15,7 +18,8 @@ fn spawn_app() -> String {
 #[tokio::test]
 async fn health_check_works() {
     // Arrange
-    let address = spawn_app();
+    let config = get_configuration(Some("test".into())).expect("could not parse configuration");
+    let address = spawn_app(&config);
 
     let client = reqwest::Client::new();
 
@@ -33,9 +37,14 @@ async fn health_check_works() {
 #[tokio::test]
 async fn subscribe_returns_a_200_for_valid_form_data() {
     // Arrange
-    let address = spawn_app();
+    let config = get_configuration(Some("test".into())).expect("could not parse configuration");
+    let address = spawn_app(&config);
 
     let client = reqwest::Client::new();
+    // Connection to db
+    let db_url = config.database.get_connection_string();
+
+    let conn = PgConnection::connect(&db_url).await.expect("could not connect to database");
 
     //Act
     let body = "name=le%20guin&email=le_guin%40gmail.com";
@@ -53,7 +62,8 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
 #[tokio::test]
 async fn subscribe_returns_a_400_when_data_is_missing() {
     // Arange
-    let address = spawn_app();
+    let config = get_configuration(Some("test".into())).expect("could not parse configuration");
+    let address = spawn_app(&config);
 
     let client = reqwest::Client::new();
 
