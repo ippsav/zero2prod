@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "type": "cargo",
+            "name": "Run server",
+            "cargoArgs": ["run"],
+        },
+        {
+            "type": "cargo",
+            "name": "Run cargo watch(checks,tests,run server)",
+            "cargoArgs": ["watch", "-x check","-x test", "-x run"],
+        },
+        {
+            "type": "cargo",
+            "name": "Run tests",
+            "cargoArgs": ["test"],
+        }
+    ]
+}
