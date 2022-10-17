@@ -56,7 +56,8 @@ async fn configure_database(config: &DatabaseSettings) -> PgPool {
 async fn spawn_app() -> TestApp {
     Lazy::force(&TRACING);
     // parsing config
-    let mut config = get_configuration(Some("test".into())).expect("could not parse configuration");
+    let config_path = std::env::current_dir().unwrap().join("config");
+    let mut config = get_configuration(Some("test".into()), config_path).expect("could not parse configuration");
     config.database.db_name = Uuid::new_v4().to_string();
     // Configuring database
     let db_pool = configure_database(&config.database).await;

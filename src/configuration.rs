@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use config::{Config, ConfigError, File, FileFormat};
 use serde::Deserialize;
 
@@ -54,22 +56,24 @@ pub struct DatabaseSettings {
     pub db_name: String,
 }
 
-pub fn get_configuration(env: Option<String>) -> Result<Settings, ConfigError> {
+pub fn get_configuration(env: Option<String>, path: PathBuf) -> Result<Settings, ConfigError> {
     // If no environment passed, pass default
     let env = env.map_or(Default::default(), |e| {
         e.try_into().expect("could not parse environment")
     });
-    let source = match env {
-        Environment::Development => "config/config.dev.yml",
-        Environment::Test => "config/config.test.yml",
+    let file_name = match env {
+        Environment::Development => "config.dev.yml",
+        Environment::Test => "config.test.yml",
         Environment::Production => "config.prod.yml",
     };
+    let path = path.join(file_name);
+    let path_str = path.to_str().expect("could not get path to config");
     // Building config
     let config = Config::builder()
-        .add_source(File::new(source, FileFormat::Yaml))
+        .add_source(File::new(path_str, FileFormat::Yaml))
         .build()?;
 
-    dbg!(config.try_deserialize::<Settings>())
+    config.try_deserialize::<Settings>()
 }
 
 impl DatabaseSettings {

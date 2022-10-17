@@ -11,7 +11,8 @@ async fn main() -> std::io::Result<()> {
     // Parse environment
     let environment = std::env::var("APP_ENVIRONMENT").map_or(None, |v| Some(v));
     //Parse config
-    let config = get_configuration(environment).expect("could not parse config");
+    let config_path = std::env::current_dir()?.join("config");
+    let config = get_configuration(environment,config_path).expect("could not parse config");
     let address = config.application.get_address();
     // Connect to database
     let db_url = config.database.get_connection_string();
