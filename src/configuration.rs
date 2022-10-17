@@ -30,7 +30,19 @@ impl TryFrom<String> for Environment {
 #[derive(Debug, Deserialize)]
 pub struct Settings {
     pub database: DatabaseSettings,
-    pub application_port: u16,
+    pub application: ApplicationSettings,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ApplicationSettings {
+    pub host: String,
+    pub port: u16,
+}
+
+impl ApplicationSettings {
+    pub fn get_address(&self) -> String {
+        format!("{}:{}",self.host,self.port)
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -57,7 +69,7 @@ pub fn get_configuration(env: Option<String>) -> Result<Settings, ConfigError> {
         .add_source(File::new(source, FileFormat::Yaml))
         .build()?;
 
-    config.try_deserialize::<Settings>()
+    dbg!(config.try_deserialize::<Settings>())
 }
 
 impl DatabaseSettings {
@@ -75,4 +87,3 @@ impl DatabaseSettings {
         )
     }
 }
-

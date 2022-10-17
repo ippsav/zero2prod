@@ -61,16 +61,16 @@ async fn spawn_app() -> TestApp {
     // Configuring database
     let db_pool = configure_database(&config.database).await;
     // setting up the listener
-    let listener = TcpListener::bind(format!("0.0.0.0:{}", config.application_port)).unwrap();
+    let listener = TcpListener::bind(&config.application.get_address()).unwrap();
 
     // getting the port from the listener
-    let port = listener.local_addr().unwrap().port();
+    config.application.port = listener.local_addr().unwrap().port();
     // setting up the server to be spawned in a tokio task
     let server = run(listener, db_pool.clone()).expect("could not start server");
     let _ = tokio::spawn(server);
 
     TestApp {
-        address: format!("0.0.0.0:{port}"),
+        address: config.application.get_address(),
         db_pool,
     }
 }
