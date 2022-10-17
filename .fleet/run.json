@@ -18,7 +18,8 @@
             "type": "cargo",
             "name": "Run tests with logs",
             "environment": {
-            "TEST_LOG": "info"
+                "TEST_LOG": "info",
+                "ENVIRONMENT": "test"
             },
             "cargoArgs": ["test"],
         },
