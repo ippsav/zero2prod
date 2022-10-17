@@ -1,11 +1,26 @@
 use std::net::TcpListener;
 
+use once_cell::sync::Lazy;
 use sqlx::{Connection, Executor, PgConnection, PgPool, Row};
 use uuid::Uuid;
+use zero2prod::telemetry::{get_subscriber, init_subscriber};
 use zero2prod::{
     configuration::{get_configuration, DatabaseSettings},
     startup::run,
 };
+
+static TRACING: Lazy<()> = Lazy::new(|| {
+    let subscriber_name = "test";
+    let env_filter = "info";
+
+    if std::env::var("TEST_LOG").is_ok() {
+        let subscriber = get_subscriber(subscriber_name, env_filter, std::io::stdout);
+        init_subscriber(subscriber);
+    } else {
+        let subscriber = get_subscriber(subscriber_name, env_filter, std::io::sink);
+        init_subscriber(subscriber);
+    };
+});
 
 struct TestApp {
     pub address: String,
@@ -39,6 +54,7 @@ async fn configure_database(config: &DatabaseSettings) -> PgPool {
 }
 
 async fn spawn_app() -> TestApp {
+    Lazy::force(&TRACING);
     // parsing config
     let mut config = get_configuration(Some("test".into())).expect("could not parse configuration");
     config.database.db_name = Uuid::new_v4().to_string();
@@ -98,7 +114,7 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
         .fetch_one(&app.db_pool)
         .await
         .expect("could not query subscriber from database");
-    assert_eq!(subscriber.get::<String,&str>("name"), "le guin");
+    assert_eq!(subscriber.get::<String, &str>("name"), "le guin");
     assert_eq!(subscriber.get::<String, &str>("email"), "le_guin@gmail.com");
     assert!(response.status().is_success());
 }

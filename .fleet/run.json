@@ -2,6 +2,29 @@
     "configurations": [
         {
             "type": "cargo",
+            "name": "Generate docs",
+            "cargoArgs": ["doc"],
+        },
+
+        {
+            "type": "cargo",
+            "name": "Run server with logs",
+            "environment": {
+                "RUST_LOG": "trace"
+            },
+            "cargoArgs": ["run"],
+        },
+        {
+            "type": "cargo",
+            "name": "Run tests with logs",
+            "environment": {
+            "TEST_LOG": "info"
+            },
+            "cargoArgs": ["test"],
+        },
+
+        {
+            "type": "cargo",
             "name": "Run server",
             "cargoArgs": ["run"],
         },
