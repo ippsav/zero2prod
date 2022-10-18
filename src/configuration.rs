@@ -2,6 +2,7 @@ use config::{Config, ConfigError, File, FileFormat};
 use serde::Deserialize;
 use serde_aux::field_attributes::deserialize_number_from_string;
 use std::path::PathBuf;
+use sqlx::postgres::{PgConnectOptions, PgSslMode};
 
 #[derive(Debug)]
 pub enum Environment {
@@ -56,6 +57,7 @@ pub struct DatabaseSettings {
     pub port: u16,
     pub host: String,
     pub db_name: String,
+    pub ssl_mode: bool
 }
 
 pub fn get_configuration(env: Option<String>, path: PathBuf) -> Result<Settings, ConfigError> {
@@ -84,17 +86,33 @@ pub fn get_configuration(env: Option<String>, path: PathBuf) -> Result<Settings,
 }
 
 impl DatabaseSettings {
-    pub fn get_connection_string(&self) -> String {
-        format!(
-            "postgres://{}:{}@{}:{}/{}",
-            self.username, self.password, self.host, self.port, self.db_name
-        )
+    pub fn with_db(&self) -> PgConnectOptions {
+        let ssl_mode = if self.ssl_mode {
+            PgSslMode::Require
+        } else {
+            PgSslMode::Prefer
+        };
+
+        PgConnectOptions::new()
+        .host(&self.host)
+        .port(self.port)
+        .username(&self.username)
+        .password(&self.password)
+        .database(&self.db_name)
+        .ssl_mode(ssl_mode)
     }
 
-    pub fn get_connection_without_database_name(&self) -> String {
-        format!(
-            "postgres://{}:{}@{}:{}",
-            self.username, self.password, self.host, self.port
-        )
+    pub fn without_db(&self) -> PgConnectOptions {
+        let ssl_mode = if self.ssl_mode {
+            PgSslMode::Require
+        } else {
+            PgSslMode::Prefer
+        };
+        PgConnectOptions::new()
+            .host(&self.host)
+            .port(self.port)
+            .username(&self.username)
+            .password(&self.password)
+            .ssl_mode(ssl_mode)
     }
 }

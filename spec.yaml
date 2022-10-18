@@ -13,6 +13,22 @@ services:
           deploy_on_push: true
           repo: ippsav/zero2prod
           # Active probe used by DigitalOcean's to ensure our application is healthy
+      envs:
+          - key: APP_DATABASE__USERNAME
+            scope: RUN_TIME
+            value: ${newsletter.USERNAME}
+          - key: APP_DATABASE__PASSWORD
+            scope: RUN_TIME
+            value: ${newsletter.PASSWORD}
+          - key: APP_DATABASE__HOST
+            scope: RUN_TIME
+            value: ${newsletter.HOSTNAME}
+          - key: APP_DATABASE__PORT
+            scope: RUN_TIME
+            value: ${newsletter.PORT}
+          - key: APP_DATABASE__DB_NAME
+            scope: RUN_TIME
+            value: ${newsletter.DATABASE}
       health_check:
           # The path to our health check endpoint! It turned out to be useful in the end!
           http_path: /health_check
@@ -26,11 +42,11 @@ services:
       # All incoming requests should be routed to our app
       routes:
           - path: /
- databases:
-     # PG = Postgres
-     - engine: PG
-       # Database name
-       name: newsletter
-       num_nodes: 1
-       size: db-s-dev-database
-       version: 15
+databases:
+ # PG = Postgres
+   - engine: PG
+     # Database name
+     name: newsletter
+     num_nodes: 1
+     size: db-s-dev-database
+     version: "12"
