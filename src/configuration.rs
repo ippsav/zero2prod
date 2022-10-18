@@ -1,7 +1,7 @@
-use std::path::PathBuf;
-
 use config::{Config, ConfigError, File, FileFormat};
 use serde::Deserialize;
+use serde_aux::field_attributes::deserialize_number_from_string;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub enum Environment {
@@ -38,12 +38,13 @@ pub struct Settings {
 #[derive(Debug, Deserialize)]
 pub struct ApplicationSettings {
     pub host: String,
+    #[serde(deserialize_with="deserialize_number_from_string")]
     pub port: u16,
 }
 
 impl ApplicationSettings {
     pub fn get_address(&self) -> String {
-        format!("{}:{}",self.host,self.port)
+        format!("{}:{}", self.host, self.port)
     }
 }
 
@@ -51,6 +52,7 @@ impl ApplicationSettings {
 pub struct DatabaseSettings {
     pub username: String,
     pub password: String,
+    #[serde(deserialize_with="deserialize_number_from_string")]
     pub port: u16,
     pub host: String,
     pub db_name: String,
@@ -71,6 +73,11 @@ pub fn get_configuration(env: Option<String>, path: PathBuf) -> Result<Settings,
     // Building config
     let config = Config::builder()
         .add_source(File::new(path_str, FileFormat::Yaml))
+        .add_source(
+            config::Environment::with_prefix("APP")
+                .prefix_separator("_")
+                .separator("__"),
+        )
         .build()?;
 
     config.try_deserialize::<Settings>()

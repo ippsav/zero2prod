@@ -29,7 +29,7 @@ struct TestApp {
 
 async fn configure_database(config: &DatabaseSettings) -> PgPool {
     // Connect to database
-    let mut conn = PgConnection::connect(&config.get_connection_without_database_name())
+    let mut conn = PgConnection::connect_with(&config.without_db())
         .await
         .expect("could not connect to database");
     // Create database
@@ -41,7 +41,7 @@ async fn configure_database(config: &DatabaseSettings) -> PgPool {
 
     // Connect to the created the database returning the pg_pool
 
-    let db_pool = PgPool::connect(&config.get_connection_string())
+    let db_pool = PgPool::connect_with(config.with_db())
         .await
         .expect("could not connect to database");
 

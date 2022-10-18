@@ -4,6 +4,7 @@ database:
     port: 5432
     host: localhost
     db_name: newsletter
+    ssl_mode: true
 application:
     host: 0.0.0.0
     port: 8000

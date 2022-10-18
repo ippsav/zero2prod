@@ -15,11 +15,10 @@ async fn main() -> std::io::Result<()> {
     let config = get_configuration(environment, config_path).expect("could not parse config");
     let address = config.application.get_address();
     // Connect to database
-    let db_url = config.database.get_connection_string();
+    let db_config = config.database.with_db();
     let db_pool = PgPoolOptions::new()
         .acquire_timeout(std::time::Duration::from_secs(2))
-        .connect_lazy(&db_url)
-        .expect("could not connect to database");
+        .connect_lazy_with(db_config);
 
     let listener = TcpListener::bind(address)?;
     run(listener, db_pool)?.await
