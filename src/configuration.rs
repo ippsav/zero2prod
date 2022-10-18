@@ -87,19 +87,8 @@ pub fn get_configuration(env: Option<String>, path: PathBuf) -> Result<Settings,
 
 impl DatabaseSettings {
     pub fn with_db(&self) -> PgConnectOptions {
-        let ssl_mode = if self.ssl_mode {
-            PgSslMode::Require
-        } else {
-            PgSslMode::Prefer
-        };
-
-        PgConnectOptions::new()
-        .host(&self.host)
-        .port(self.port)
-        .username(&self.username)
-        .password(&self.password)
-        .database(&self.db_name)
-        .ssl_mode(ssl_mode)
+        let db_options = self.without_db();
+        db_options.database(&self.db_name)
     }
 
     pub fn without_db(&self) -> PgConnectOptions {
